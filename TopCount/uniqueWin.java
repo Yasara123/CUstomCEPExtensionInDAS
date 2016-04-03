@@ -65,7 +65,7 @@ public class uniqueWin extends WindowProcessor implements FindableProcessor{
                 map = new ConcurrentHashMap<String, StreamEvent>();
                 
             }
-        }, 0, 24, HOURS);
+        }, 0, 16, HOURS);
     }
 
  
