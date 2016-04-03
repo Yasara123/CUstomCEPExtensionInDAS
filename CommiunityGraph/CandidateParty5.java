@@ -47,6 +47,12 @@ import org.wso2.siddhi.query.api.definition.Attribute;
 import com.mysql.jdbc.PreparedStatement;
 import com.mysql.jdbc.Statement;
 
+/*
+#TweetReader:getPartyNew2(from_user,5)
+@Param: UserScreenName and Executor Schedule Time
+@Return:Highest Percentage Party and That percentage
+*/
+
 public class CandidateParty5 extends StreamProcessor {
     private static final Logger logger = LoggerFactory.getLogger(CandidateParty5.class);
     ComplexEventChunk<StreamEvent> returnEventChunk;
