@@ -48,37 +48,35 @@ import com.mysql.jdbc.PreparedStatement;
 import com.mysql.jdbc.Statement;
 
 /*
-#TweetReader:getPartyNew2(from_user,5)
-@Param: UserScreenName and Executor Schedule Time
-@Return:Highest Percentage Party and That percentage
-*/
-
+ #TweetReader:getPartyNew2(from_user,5)
+ @Param: UserScreenName and Executor Schedule Time
+ @Return:Highest Percentage Party and That percentage
+ */
 public class CandidateParty5 extends StreamProcessor {
     private static final Logger logger = LoggerFactory.getLogger(CandidateParty5.class);
     ComplexEventChunk<StreamEvent> returnEventChunk;
     VariableExpressionExecutor variableExpressionURLName;
     private static String[] Trump = { "trump", "donaldtrump", "trump2016", "makeamericagreatagain", "realDonaldTrump",
-            "#trumpforpresident", "#trumppresident2016", "#donaldtrumpforpresident", "#donaldtrumpforpresident2016",
-            "#buttrump", "#WomenForTrump" };
+        "trumpforpresident", "trumppresident2016", "donaldtrumpforpresident", "donaldtrumpforpresident2016",
+        "buttrump", "WomenForTrump" };
     private static String[] Clinton = { "hillary2016", "hillaryclinton", "hillaryforpresident2016", "imwithher",
             "hillaryforpresident", "hillary", "HillYes" };
     private static String[] Bernie = { "bernie2016", "feelthebern", "berniesanders", "bernie", "bernieforpresident",
-            "bernieorbust", "bernbots", "berniebros" ,"#BernsReturns"};
-    private static String[] Ted = { "tedcruz", "cruzcrew", "cruz2016", " makedclisten", "cruzcrew", "choosecruz",
+            "bernieorbust", "bernbots", "berniebros" ,"bernsreturns"};
+    private static String[] Ted = { "tedcruz", "cruzcrew", "cruz2016", "makedclisten", "cruzcrew", "choosecruz",
             "tedcruzforpresident", "tedcruz2016", "istandwithtedcruz", "cruztovictory" };
-    private int ShTm = 2;
-    int corePoolSize = 8;
-    int maxPoolSize = 300;
-    long keepAliveTime = 20000;
-    int jobQueueSize = 10000;
-    ConcurrentHashMap hm;
+    private static int ShTm = 2;
+    private static int corePoolSize = 8;
+    private static int maxPoolSize = 400;
+    private static long keepAliveTime = 20000;
+    private static int jobQueueSize = 10000;
+    private static ConcurrentHashMap hm;
     final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-    BlockingQueue<Runnable> bounded;
-    ExecutorService threadExecutor;
+    private static BlockingQueue<Runnable> bounded;
+    private static ExecutorService threadExecutor;
 
     @Override
     public void start() {
-
         bounded = new LinkedBlockingQueue<Runnable>(jobQueueSize);
         threadExecutor = new ThreadPoolExecutor(corePoolSize, maxPoolSize, keepAliveTime, TimeUnit.MILLISECONDS,
                 bounded);
@@ -95,7 +93,6 @@ public class CandidateParty5 extends StreamProcessor {
                     Set hmapset = hm.keySet();
                     java.sql.Connection connection = null;
                     java.sql.Statement stmt = null;
-
                     try {
                         connection = database.Get_Connection();
                         stmt = connection.createStatement();
@@ -108,7 +105,7 @@ public class CandidateParty5 extends StreamProcessor {
                                 if (hm.get(hmapset.toArray()[i].toString()) != "T") {
                                     String sql = "INSERT INTO tweep VALUES ('" + hmapset.toArray()[i].toString()
                                             + "','" + strDate + "','" + hm.get(hmapset.toArray()[i].toString()) + "')";
-                                    stmt.addBatch(sql);                                 
+                                    stmt.addBatch(sql);
                                 }
                             }
                         }
@@ -139,7 +136,7 @@ public class CandidateParty5 extends StreamProcessor {
     public void stop() {
         // TODO Auto-generated method stub
         scheduler.shutdownNow();
-        threadExecutor.shutdown();
+        threadExecutor.shutdownNow();
         bounded.clear();
 
     }
@@ -163,22 +160,18 @@ public class CandidateParty5 extends StreamProcessor {
         returnEventChunk = new ComplexEventChunk<StreamEvent>();
         StreamEvent streamEvent;
         while (streamEventChunk.hasNext()) {
-
             streamEvent = streamEventChunk.next();
             streamEventChunk.remove();
-
             if (hm.containsKey((String) variableExpressionURLName.execute(streamEvent))) {
                 if (hm.get((String) variableExpressionURLName.execute(streamEvent)) != "T") {
-                    StreamEvent clonedEvent = streamEventCloner.copyStreamEvent(streamEvent);
-                    complexEventPopulater.populateComplexEvent(clonedEvent,
+                    complexEventPopulater.populateComplexEvent(streamEvent,
                             new Object[] { hm.get((String) variableExpressionURLName.execute(streamEvent)), 0 });
-                    returnEventChunk.add(clonedEvent);
+                    returnEventChunk.add(streamEvent);
                 }
             } else {
                 hm.put((String) variableExpressionURLName.execute(streamEvent), "T");
                 threadExecutor.submit(new jsoupConnection(streamEvent, complexEventPopulater));
             }
-
         }
         sendEventChunk();
     }
@@ -212,10 +205,8 @@ public class CandidateParty5 extends StreamProcessor {
             ShTm = (Integer) attributeExpressionExecutors[1].execute(null);
         }
         List<Attribute> attributeList = new ArrayList<Attribute>();
-        // TRUMP,CLINTON,BERNIE,BEN,MALLEY,BUSH,CRUZ,CHRIS,FIORINA,GILMORE,GRAHAM,HUCKABEE,JOHN,GEORGE,RAND,RUBIE,RICK,WALKER
         attributeList.add(new Attribute("TopName", Attribute.Type.STRING));
         attributeList.add(new Attribute("Top", Attribute.Type.DOUBLE));
-
         return attributeList;
 
     }
@@ -224,7 +215,6 @@ public class CandidateParty5 extends StreamProcessor {
         String Username;
         StreamEvent event;
         ComplexEventPopulater complexEventPopulater;
-
         public jsoupConnection(StreamEvent event, ComplexEventPopulater complexEventPopulater) {
             this.Username = (String) variableExpressionURLName.execute(event);
             this.event = event;
@@ -249,7 +239,7 @@ public class CandidateParty5 extends StreamProcessor {
                 Elements paragraphs = doc.select("b");
                 for (Element p : paragraphs) {
                     TweetChunk = TweetChunk.concat(p.text().concat(" "));
-                    if (maxeve > 200)
+                    if (maxeve > 50)
                         break;
                     maxeve++;
                 }
