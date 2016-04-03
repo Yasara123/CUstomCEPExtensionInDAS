@@ -35,9 +35,12 @@ import org.wso2.siddhi.query.api.definition.Attribute.Type;
 
 import com.clearspring.analytics.stream.ITopK;
 import com.clearspring.analytics.stream.ScoredItem;
+/*
+#TweetReader:getTop2(4,10,Fparty, 990587,87261,829347,209493)
+*/
 public class CountTop2 extends StreamProcessor {
     final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2);
-    boolean first=true;
+    private boolean first=true;
     private int PassToOut=4;
     private int MaxLength=10;
     private int T=0;
@@ -60,13 +63,13 @@ public class CountTop2 extends StreamProcessor {
                 }
                 if (first) {
                 tpK.offer("TRUMP", T);
-                T=1;
+                T=0;
                 tpK.offer("CRUZ", Cr);
-                Cr=1;
+                Cr=0;
                 tpK.offer("BERNIE", B);
-                B=1;
+                B=0;
                 tpK.offer("CLINTON", Cl);
-                Cl=1;
+                Cl=0;
                 first=false;
                 }
                 if (tpK2 != null) {
@@ -97,6 +100,7 @@ public class CountTop2 extends StreamProcessor {
     @Override
     public void stop() {
         scheduler.shutdownNow();
+        first=true;
     }
 
     @Override
